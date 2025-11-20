@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'abstractapi' => [
+        'key' => env('ABSTRACT_EMAIL_API_KEY'),
+    ],
+
 ];

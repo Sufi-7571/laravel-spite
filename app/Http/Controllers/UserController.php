@@ -6,6 +6,9 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use App\Jobs\SendWelcomeEmail;
+use App\Rules\ValidEmail;
+use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
@@ -35,12 +38,15 @@ class UserController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
+            'email' => ['required', 'string', 'max:255', 'unique:users', new ValidEmail],
             'password' => 'required|string|min:8|confirmed',
             'role' => 'required|exists:roles,name',
             'permissions' => 'nullable|array',
             'permissions.*' => 'exists:permissions,name',
         ]);
+
+        // Store the plain password before hashing (for email)
+        $plainPassword = $validated['password'];
 
         $user = User::create([
             'name' => $validated['name'],
@@ -56,8 +62,11 @@ class UserController extends Controller
             $user->givePermissionTo($validated['permissions']);
         }
 
+        // Dispatch job to send welcome email in background
+        SendWelcomeEmail::dispatch($user, $plainPassword);
+
         return redirect()->route('users.index')
-            ->with('success', 'User created successfully.');
+            ->with('success', 'User created successfully. Welcome email will be sent shortly.');
     }
 
     /**
@@ -80,11 +89,14 @@ class UserController extends Controller
         return view('users.edit', compact('user', 'roles', 'permissions'));
     }
 
+    /**
+     * Update the specified user in storage.
+     */
     public function update(Request $request, User $user)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'email' => ['required', 'string', 'max:255', 'unique:users,email,' . $user->id, new ValidEmail],
             'password' => 'nullable|string|min:8|confirmed',
             'role' => 'required|exists:roles,name',
             'permissions' => 'nullable|array',
@@ -96,6 +108,7 @@ class UserController extends Controller
             'email' => $validated['email'],
         ]);
 
+        // Update password if provided
         if (!empty($validated['password'])) {
             $user->update(['password' => bcrypt($validated['password'])]);
         }

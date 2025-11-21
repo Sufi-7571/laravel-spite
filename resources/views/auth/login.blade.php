@@ -15,6 +15,9 @@
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+    <!-- Google reCAPTCHA -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
     <style>
         .forms-wrapper {
             position: relative;
@@ -77,6 +80,13 @@
                 <!-- Decorative Element -->
                 <div class="absolute top-0 left-0 w-full h-2 gradient-bg"></div>
 
+                <!-- Status Messages -->
+                @if (session('status'))
+                    <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded text-sm">
+                        {{ session('status') }}
+                    </div>
+                @endif
+
                 <!-- Toggle Buttons -->
                 <div class="flex mb-8 bg-gray-100 rounded-lg p-1">
                     <button id="loginTabBtn" onclick="showLogin()"
@@ -90,7 +100,7 @@
                 </div>
 
                 <!-- Forms Wrapper -->
-                <div class="forms-wrapper" style="min-height: 400px;">
+                <div class="forms-wrapper" style="min-height: 500px;">
                     <!-- Login Form -->
                     <div id="loginForm" class="form-container slide-center">
                         <form method="POST" action="{{ route('login') }}">
@@ -123,6 +133,14 @@
                                     <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
+
+                            <!-- reCAPTCHA -->
+                            <div class="mb-6 flex justify-center">
+                                <div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') }}"></div>
+                            </div>
+                            @error('g-recaptcha-response')
+                                <p class="mb-4 text-sm text-red-600 text-center">{{ $message }}</p>
+                            @enderror
 
                             <!-- Remember Me -->
                             <div class="flex items-center justify-between mb-6">
@@ -197,12 +215,11 @@
 
                             <!-- Confirm Password -->
                             <div class="mb-6">
-                                <label for="password_confirmation"
-                                    class="block text-sm font-medium text-gray-700 mb-2">
+                                <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-2">
                                     Confirm Password
                                 </label>
-                                <input id="password_confirmation" type="password" name="password_confirmation"
-                                    required autocomplete="new-password"
+                                <input id="password_confirmation" type="password" name="password_confirmation" required
+                                    autocomplete="new-password"
                                     class="input-focus w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
                                     placeholder="••••••••">
                                 @error('password_confirmation')

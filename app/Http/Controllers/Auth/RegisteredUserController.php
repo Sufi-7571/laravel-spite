@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Rules\ValidEmail;
-use App\Jobs\SendWelcomeEmail;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,7 +20,7 @@ class RegisteredUserController extends Controller
      */
     public function create(): View
     {
-        return view('auth.login'); 
+        return view('auth.login');
     }
 
     /**
@@ -37,9 +36,6 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        // Store plain password for welcome email
-        $plainPassword = $request->password;
-
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
@@ -49,13 +45,13 @@ class RegisteredUserController extends Controller
         // Assign default 'user' role to new registrations
         $user->assignRole('user');
 
-        // Send welcome email in background
-        SendWelcomeEmail::dispatch($user, $plainPassword);
-
+        // This will send the verification email
         event(new Registered($user));
 
-        Auth::login($user);
+        // Don't log the user in automatically
+        // Auth::login($user);
 
-        return redirect(route('products.index', absolute: false));
+        return redirect()->route('login')
+            ->with('status', 'Registration successful! Please check your email to verify your account.');
     }
 }

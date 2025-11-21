@@ -18,6 +18,9 @@
     <!-- Google reCAPTCHA -->
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 
+    <!-- SweetAlert2 CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css" rel="stylesheet">
+
     <style>
         .forms-wrapper {
             position: relative;
@@ -62,6 +65,20 @@
         .input-focus:focus {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Custom SweetAlert styling */
+        .swal2-popup {
+            border-radius: 15px !important;
+        }
+
+        .swal2-title {
+            font-size: 1.5rem !important;
+            font-weight: 700 !important;
+        }
+
+        .swal2-html-container {
+            font-size: 0.95rem !important;
         }
     </style>
 </head>
@@ -129,7 +146,8 @@
 
                             <!-- reCAPTCHA -->
                             <div class="mb-6 flex justify-center">
-                                <div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') }}"></div>
+                                <div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') }}">
+                                </div>
                             </div>
                             @error('g-recaptcha-response')
                                 <p class="mb-4 text-sm text-red-600 text-center">{{ $message }}</p>
@@ -183,8 +201,8 @@
                                 <label for="register_email" class="block text-sm font-medium text-gray-700 mb-2">
                                     Email Address
                                 </label>
-                                <input id="register_email" type="email" name="email"
-                                    value="{{ old('email') }}" required autocomplete="username"
+                                <input id="register_email" type="email" name="email" value="{{ old('email') }}"
+                                    required autocomplete="username"
                                     class="input-focus w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
                                     placeholder="you@example.com">
                                 @error('email')
@@ -208,11 +226,12 @@
 
                             <!-- Confirm Password -->
                             <div class="mb-6">
-                                <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-2">
+                                <label for="password_confirmation"
+                                    class="block text-sm font-medium text-gray-700 mb-2">
                                     Confirm Password
                                 </label>
-                                <input id="password_confirmation" type="password" name="password_confirmation" required
-                                    autocomplete="new-password"
+                                <input id="password_confirmation" type="password" name="password_confirmation"
+                                    required autocomplete="new-password"
                                     class="input-focus w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
                                     placeholder="••••••••">
                                 @error('password_confirmation')
@@ -237,6 +256,7 @@
         </div>
     </div>
 
+    <!-- Form Toggle Script -->
     <script>
         function showLogin() {
             const loginForm = document.getElementById('loginForm');
@@ -283,33 +303,104 @@
         }
 
         // Check if there are registration errors and show register form
-        @if ($errors->has('name') || (old('name') && $errors->any()))
+        @if ($errors->has('name') || $errors->has('password_confirmation') || (old('name') && $errors->any()))
             document.addEventListener('DOMContentLoaded', function() {
                 showRegister();
             });
         @endif
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
-<script>
-    @if(session('status'))
-        Swal.fire({
-            icon: 'success',
-            title: 'Success!',
-            text: '{{ session('status') }}',
-            showConfirmButton: true,
-            confirmButtonText: 'OK'
-        });
-    @endif
 
-    @if($errors->any())
-        Swal.fire({
-            icon: 'error',
-            title: 'Login Failed',
-            html: '<ul style="text-align: left; list-style: none; padding: 0;">@foreach($errors->all() as $error)<li>• {{ $error }}</li>@endforeach</ul>',
-            showConfirmButton: true,
-        });
-    @endif
-</script>
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+
+    <!-- SweetAlert Messages -->
+    <script>
+        // Registration success message with email verification notice
+        @if (session('registered'))
+            Swal.fire({
+                icon: 'success',
+                title: '🎉 Registration Successful!',
+                html: `
+                    <div style="text-align: center; line-height: 1.8;">
+                        <p style="font-size: 1rem; margin-bottom: 15px;">
+                            Your account has been created successfully!
+                        </p>
+                        <div style="background: #f0f9ff; padding: 15px; border-radius: 10px; margin: 15px 0; border-left: 4px solid #667eea;">
+                            <p style="margin: 0; color: #1e40af; font-weight: 600;">
+                                📧 Verification Email Sent
+                            </p>
+                            <p style="margin: 10px 0 0 0; font-size: 0.9rem; color: #374151;">
+                                Please check your inbox at:<br>
+                                <strong style="color: #667eea;">{{ session('registered_email') }}</strong>
+                            </p>
+                        </div>
+                        <p style="font-size: 0.9rem; color: #6b7280; margin-top: 15px;">
+                            You must verify your email before you can log in.
+                        </p>
+                    </div>
+                `,
+                showConfirmButton: true,
+                confirmButtonText: 'Got it!',
+                confirmButtonColor: '#667eea',
+                allowOutsideClick: false,
+                width: '500px'
+            });
+        @endif
+
+        // Email verification status messages
+        @if (session('status'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: '{{ session('status') }}',
+                showConfirmButton: true,
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#667eea'
+            });
+        @endif
+
+        // Only show login errors (not registration errors)
+        @if ($errors->any() && !$errors->has('name') && !$errors->has('password_confirmation') && !old('name'))
+            Swal.fire({
+                icon: 'error',
+                title: '❌ Login Failed',
+                html: `
+                    <ul style="text-align: left; list-style: none; padding: 0; margin: 20px 0;">
+                        @foreach ($errors->all() as $error)
+                            <li style="margin-bottom: 10px; padding: 10px; background: #fef2f2; border-left: 3px solid #ef4444; border-radius: 5px; color: #991b1b;">
+                                • {{ $error }}
+                            </li>
+                        @endforeach
+                    </ul>
+                `,
+                showConfirmButton: true,
+                confirmButtonText: 'Try Again',
+                confirmButtonColor: '#667eea',
+                width: '500px'
+            });
+        @endif
+
+        // Show registration errors
+        @if (($errors->has('name') || $errors->has('password_confirmation') || old('name')) && $errors->any())
+            Swal.fire({
+                icon: 'error',
+                title: '❌ Registration Failed',
+                html: `
+                    <ul style="text-align: left; list-style: none; padding: 0; margin: 20px 0;">
+                        @foreach ($errors->all() as $error)
+                            <li style="margin-bottom: 10px; padding: 10px; background: #fef2f2; border-left: 3px solid #ef4444; border-radius: 5px; color: #991b1b;">
+                                • {{ $error }}
+                            </li>
+                        @endforeach
+                    </ul>
+                `,
+                showConfirmButton: true,
+                confirmButtonText: 'Try Again',
+                confirmButtonColor: '#667eea',
+                width: '500px'
+            });
+        @endif
+    </script>
 </body>
 
 </html>

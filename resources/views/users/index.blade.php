@@ -13,17 +13,6 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            @if (session('success'))
-                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                    {{ session('success') }}
-                </div>
-            @endif
-
-            @if (session('error'))
-                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                    {{ session('error') }}
-                </div>
-            @endif
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
@@ -90,8 +79,7 @@
                                                     class="inline">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit"
-                                                        onclick="return confirm('Are you sure you want to delete this user?')"
+                                                    <button type="button" onclick="confirmDeleteUser(this)"
                                                         class="text-red-600 hover:text-red-900">
                                                         Delete
                                                     </button>
@@ -117,4 +105,25 @@
             </div>
         </div>
     </div>
+
+    @push('scripts')
+        <script>
+            function confirmDeleteUser(button) {
+                Swal.fire({
+                    title: 'Delete User?',
+                    text: "This user will be permanently deleted!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc2626',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Yes, delete user!',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        button.closest('form').submit();
+                    }
+                });
+            }
+        </script>
+    @endpush
 </x-app-layout>

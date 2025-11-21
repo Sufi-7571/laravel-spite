@@ -76,14 +76,28 @@
                         <!-- Permissions -->
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Additional Permissions</label>
+                            <p class="text-xs text-gray-500 mb-3">
+                                Note: This user's role
+                                "<strong>{{ $user->roles->first()->name ?? 'None' }}</strong>" already provides:
+                                <strong>{{ $user->roles->first()?->permissions->pluck('name')->implode(', ') ?: 'No permissions' }}</strong>
+                            </p>
+                            <p class="text-xs text-gray-500 mb-3">
+                                Check the boxes below to grant additional direct permissions beyond what the role
+                                provides.
+                            </p>
                             <div class="grid grid-cols-2 gap-2">
                                 @foreach ($permissions as $permission)
                                     @if ($permission->name !== 'manage users')
                                         <label class="flex items-center">
                                             <input type="checkbox" name="permissions[]" value="{{ $permission->name }}"
-                                                {{ $user->hasPermissionTo($permission->name) ? 'checked' : '' }}
+                                                {{ $user->permissions->contains('name', $permission->name) ? 'checked' : '' }}
                                                 class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                            <span class="ml-2 text-sm text-gray-700">{{ $permission->name }}</span>
+                                            <span class="ml-2 text-sm text-gray-700">
+                                                {{ $permission->name }}
+                                                @if ($user->roles->first()?->permissions->contains('name', $permission->name))
+                                                    <span class="text-xs text-gray-500">(from role)</span>
+                                                @endif
+                                            </span>
                                         </label>
                                     @endif
                                 @endforeach

@@ -80,13 +80,6 @@
                 <!-- Decorative Element -->
                 <div class="absolute top-0 left-0 w-full h-2 gradient-bg"></div>
 
-                <!-- Status Messages -->
-                @if (session('status'))
-                    <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded text-sm">
-                        {{ session('status') }}
-                    </div>
-                @endif
-
                 <!-- Toggle Buttons -->
                 <div class="flex mb-8 bg-gray-100 rounded-lg p-1">
                     <button id="loginTabBtn" onclick="showLogin()"
@@ -296,6 +289,27 @@
             });
         @endif
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+<script>
+    @if(session('status'))
+        Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: '{{ session('status') }}',
+            showConfirmButton: true,
+            confirmButtonText: 'OK'
+        });
+    @endif
+
+    @if($errors->any())
+        Swal.fire({
+            icon: 'error',
+            title: 'Login Failed',
+            html: '<ul style="text-align: left; list-style: none; padding: 0;">@foreach($errors->all() as $error)<li>• {{ $error }}</li>@endforeach</ul>',
+            showConfirmButton: true,
+        });
+    @endif
+</script>
 </body>
 
 </html>

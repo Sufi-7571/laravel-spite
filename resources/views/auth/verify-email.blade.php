@@ -37,26 +37,25 @@
                 <div class="absolute top-0 left-0 w-full h-2 gradient-bg"></div>
 
                 <div class="text-center mb-6">
-                    <svg class="mx-auto h-16 w-16 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                    <svg class="mx-auto h-16 w-16 text-purple-600" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
+                        </path>
                     </svg>
                 </div>
 
                 <div class="text-center mb-6">
                     <h2 class="text-2xl font-bold text-gray-800 mb-4">Verify Your Email</h2>
                     <p class="text-gray-600 mb-4">
-                        Thanks for signing up! Before getting started, could you verify your email address by clicking on the link we just emailed to you?
+                        Thanks for signing up! Before getting started, could you verify your email address by clicking
+                        on the link we just emailed to you?
                     </p>
                     <p class="text-gray-600">
                         If you didn't receive the email, we will gladly send you another.
                     </p>
                 </div>
 
-                @if (session('status') == 'verification-link-sent')
-                    <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
-                        A new verification link has been sent to your email address.
-                    </div>
-                @endif
 
                 <div class="flex items-center justify-between gap-4">
                     <form method="POST" action="{{ route('verification.send') }}" class="flex-1">
@@ -71,7 +70,8 @@
                 <div class="mt-6 text-center">
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button type="submit" class="text-sm text-purple-600 hover:text-purple-800 transition-colors duration-300">
+                        <button type="submit"
+                            class="text-sm text-purple-600 hover:text-purple-800 transition-colors duration-300">
                             Log Out
                         </button>
                     </form>
@@ -79,6 +79,20 @@
             </div>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+    <script>
+        @if (session('status') == 'verification-link-sent')
+            Swal.fire({
+                icon: 'success',
+                title: 'Email Sent!',
+                text: 'A new verification link has been sent to your email address.',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+            });
+        @endif
+    </script>
 </body>
 
 </html>

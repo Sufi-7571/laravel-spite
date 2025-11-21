@@ -8,7 +8,6 @@ use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use App\Jobs\SendWelcomeEmail;
 use App\Rules\ValidEmail;
-use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
@@ -57,10 +56,16 @@ class UserController extends Controller
         // Assign role
         $user->assignRole($validated['role']);
 
-        // Assign permissions if provided
+        // Sync DIRECT permissions (not from role)
         if (!empty($validated['permissions'])) {
-            $user->givePermissionTo($validated['permissions']);
+            $user->syncPermissions($validated['permissions']);
+        } else {
+            // Important: Clear direct permissions if none selected
+            $user->syncPermissions([]);
         }
+
+        // Clear permission cache
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
         // Dispatch job to send welcome email in background
         SendWelcomeEmail::dispatch($user, $plainPassword);
@@ -85,7 +90,10 @@ class UserController extends Controller
     {
         $roles = Role::all();
         $permissions = Permission::all();
-        $user->load('roles', 'permissions');
+        
+        // Load user's DIRECT permissions (not inherited from role)
+        $user->load('permissions');
+        
         return view('users.edit', compact('user', 'roles', 'permissions'));
     }
 
@@ -113,15 +121,20 @@ class UserController extends Controller
             $user->update(['password' => bcrypt($validated['password'])]);
         }
 
-        // Sync role
+        // Sync role (this will remove old role and add new one)
         $user->syncRoles([$validated['role']]);
 
-        // Sync permissions
-        if (isset($validated['permissions'])) {
+        // Sync DIRECT permissions (these are separate from role permissions)
+        if (isset($validated['permissions']) && !empty($validated['permissions'])) {
+            // User has direct permissions selected
             $user->syncPermissions($validated['permissions']);
         } else {
+            // No direct permissions selected - clear all direct permissions
             $user->syncPermissions([]);
         }
+
+        // Clear permission cache
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
         return redirect()->route('users.index')
             ->with('success', 'User updated successfully.');
